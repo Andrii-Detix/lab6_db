@@ -1369,16 +1369,1344 @@ DELETE FROM user WHERE id=5;
 DELETE FROM surveycategory WHERE id=9;
 </code></pre>
 <h3 id="restfull-сервіс-для-управління-даними"><a class="header" href="#restfull-сервіс-для-управління-даними">RESTfull сервіс для управління даними</a></h3>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="Тестування-працездатності-системи"><a class="header" href="#Тестування-працездатності-системи">Тестування працездатності системи</a></h1>
-<p><em>В цьому розділі необхідно вказати засоби тестування, навести вихідні коди тестів та результати тестування.</em></p>
+<h4 id="Конфігураційні-файли"><a class="header" href="#Конфігураційні-файли">Конфігураційні файли</a></h4>
+<h5 id="appsettingsjson"><a class="header" href="#appsettingsjson">appsettings.json</a></h5>
+<pre><code class="language-json">{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}
+</code></pre>
+<h5 id="appsettingsdevelopmentjson"><a class="header" href="#appsettingsdevelopmentjson">appsettings.Development.json</a></h5>
+<pre><code class="language-json">{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings" : {
+    "DbConnection": "Server=localhost;Port=3306;Database=lab6;User Id=root;Password=12345678"
+  }
+}
+</code></pre>
+<h5 id="launchsettingsjson"><a class="header" href="#launchsettingsjson">launchSettings.json</a></h5>
+<pre><code class="language-json">{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:15156",
+      "sslPort": 44315
+    }
+  },
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "http://localhost:5190",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:7231;http://localhost:5190",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
+</code></pre>
+<h4 id="Підєднання-до-бази-даних"><a class="header" href="#Підєднання-до-бази-даних">Під'єднання до бази даних</a></h4>
+<pre><code class="language-json">"DbConnection": "Server=localhost;Port=3306;Database=lab6;User Id=root;Password=12345678"
+</code></pre>
+<h4 id="entities"><a class="header" href="#entities">Entities</a></h4>
+<h5 id="Презентують-сутності-в-базі-даних"><a class="header" href="#Презентують-сутності-в-базі-даних">Презентують сутності в базі даних.</a></h5>
+<h5 id="userentity"><a class="header" href="#userentity">UserEntity</a></h5>
+<pre><code class="language-C#">public class UserEntity
+{
+    public int Id { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string Email { get; set; }
+    public string? PhoneNumber { get; set; }
+    public string Password { get; set; }
+    public bool IsAdmin { get; set; }
+    public string? Description { get; set; }
+    public int? Age { get; set; }
+    public string? Gender{ get; set; }
+    public string? Company { get; set; }
+    public List&lt;ExpertiseEntity&gt; Expertises { get; set; }
+    public List&lt;SurveyEntity&gt; Surveys { get; set; }
+}
+</code></pre>
+<h5 id="categoryentity"><a class="header" href="#categoryentity">CategoryEntity</a></h5>
+<pre><code class="language-C#">public class CategoryEntity
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int? ParentId { get; set; }
+    public CategoryEntity Parent { get; set; }
+}
+</code></pre>
+<h5 id="expertiseentity"><a class="header" href="#expertiseentity">ExpertiseEntity</a></h5>
+<pre><code class="language-C#">public class ExpertiseEntity
+{
+    public int Id { get; set; }
+    public double ExpertiseRate { get; set; }
+    public int CategoryId { get; set; }
+    public CategoryEntity CategoryEntity { get; set; }
+    public int UserId { get; set; }
+    public UserEntity UserEntity { get; set; }
+}
+</code></pre>
+<h5 id="surveyentity"><a class="header" href="#surveyentity">SurveyEntity</a></h5>
+<pre><code class="language-C#">public class SurveyEntity
+{
+    public int Id { get; set; }
+    public string Title { get; set; }
+    public string? Description { get; set; }
+    public DateTime CreationDate { get; set; }
+    public DateTime? CloseDate { get; set; }
+    public bool IsChangable { get; set; }
+    public bool IsActive { get; set; }
+    public int OwnerId { get; set; }
+    public UserEntity Owner { get; set; }
+}
+</code></pre>
+<h4 id="Конфігурації-сутностей"><a class="header" href="#Конфігурації-сутностей">Конфігурації сутностей</a></h4>
+<h5 id="Класи-що-визначають-властивості-таблиць-сутностей-в-базі-даних"><a class="header" href="#Класи-що-визначають-властивості-таблиць-сутностей-в-базі-даних">Класи, що визначають властивості таблиць сутностей в базі даних.</a></h5>
+<h5 id="userconfiguration"><a class="header" href="#userconfiguration">UserConfiguration</a></h5>
+<pre><code class="language-C#">public class UserConfiguration : IEntityTypeConfiguration&lt;UserEntity&gt;
+{
+    public void Configure(EntityTypeBuilder&lt;UserEntity&gt; builder)
+    {
+        builder.ToTable("user");
+        
+        builder.HasKey(u =&gt; u.Id)
+            .HasName("PK");
+        
+        builder.Property(u =&gt; u.Id)
+            .HasColumnName("id")
+            .IsRequired();
+        
+        builder.Property(u =&gt; u.FirstName)
+            .HasMaxLength(45)
+            .IsRequired()
+            .HasColumnName("first_name");
+        
+        builder.Property(u =&gt; u.LastName)
+            .HasMaxLength(45)
+            .IsRequired()
+            .HasColumnName("last_name");
+        
+        builder.Property(u =&gt; u.Email)
+            .HasMaxLength(45)
+            .IsRequired()
+            .HasColumnName("email");
+        
+        builder.Property(u =&gt; u.PhoneNumber)
+            .HasMaxLength(45)
+            .HasColumnName("phone_number");
+        
+        builder.Property(u =&gt; u.Password)
+            .HasMaxLength(45)
+            .IsRequired()
+            .HasColumnName("password");
+        
+        builder.Property(u =&gt; u.IsAdmin)
+            .HasColumnType("tinyint(1)")
+            .IsRequired()
+            .HasColumnName("is_admin");
+        
+        builder.Property(u =&gt; u.Description)
+            .HasColumnType("text")
+            .HasColumnName("description");
+        
+        builder.Property(u =&gt; u.Age)
+            .HasColumnName("age");
+        
+        builder.Property(u =&gt; u.Gender)
+            .HasMaxLength(45)
+            .HasColumnName("gender");
+        
+        builder.Property(u =&gt; u.Company)
+            .HasMaxLength(45)
+            .HasColumnName("company");
+        
+    }
+}
+</code></pre>
+<h5 id="categoryconfiguration"><a class="header" href="#categoryconfiguration">CategoryConfiguration</a></h5>
+<pre><code class="language-C#">public class CategoryConfiguration : IEntityTypeConfiguration&lt;CategoryEntity&gt;
+{
+    public void Configure(EntityTypeBuilder&lt;CategoryEntity&gt; builder)
+    {
+        builder.ToTable("category");
+        
+        builder.HasKey(c =&gt; c.Id)
+            .HasName("PK");
+        
+        builder.Property(c =&gt; c.Id)
+            .IsRequired()
+            .HasColumnName("id");
+        
+        builder.Property(c =&gt; c.Name)
+            .HasMaxLength(45)
+            .IsRequired()
+            .HasColumnName("name");
+        
+        builder.Property(c =&gt; c.ParentId)
+            .HasColumnName("parent_id");
+
+        builder.HasOne(c =&gt; c.Parent)
+            .WithMany()
+            .HasForeignKey(c =&gt; c.ParentId);
+    }
+}
+</code></pre>
+<h5 id="expertiseconfiguration"><a class="header" href="#expertiseconfiguration">ExpertiseConfiguration</a></h5>
+<pre><code class="language-C#">public class ExpertiseConfiguration : IEntityTypeConfiguration&lt;ExpertiseEntity&gt;
+{
+    public void Configure(EntityTypeBuilder&lt;ExpertiseEntity&gt; builder)
+    {
+        builder.ToTable("expertise");
+        
+        builder.HasKey(e =&gt; new {e.Id, e.CategoryId, e.UserId}).HasName("PK");
+        
+        builder.Property(e =&gt; e.Id)
+            .ValueGeneratedOnAdd()
+            .HasColumnName("id");
+
+        builder.Property(e =&gt; e.ExpertiseRate)
+            .IsRequired()
+            .HasColumnName("expertise_rate");
+        
+        builder.Property(e =&gt; e.UserId)
+            .IsRequired()
+            .HasColumnName("user_id");
+        
+        builder.Property(e =&gt; e.CategoryId)
+            .IsRequired()
+            .HasColumnName("category_id");
+
+        builder.HasOne(e =&gt; e.UserEntity)
+            .WithMany(u =&gt; u.Expertises)
+            .HasForeignKey(e =&gt; e.UserId);
+        
+        builder.HasOne(e =&gt; e.CategoryEntity)
+            .WithMany()
+            .HasForeignKey(e =&gt; e.CategoryId);
+    }
+}
+</code></pre>
+<h5 id="surveyconfiguration"><a class="header" href="#surveyconfiguration">SurveyConfiguration</a></h5>
+<pre><code class="language-C#">public class SurveyConfiguration : IEntityTypeConfiguration&lt;SurveyEntity&gt;
+{
+    public void Configure(EntityTypeBuilder&lt;SurveyEntity&gt; builder)
+    {
+        builder.ToTable("survey");
+        
+        builder.HasKey(s =&gt; s.Id)
+            .HasName("PK");
+        
+        builder.Property(s =&gt; s.Id)
+            .IsRequired()
+            .HasColumnName("id");
+
+        builder.Property(s =&gt; s.Title)
+            .HasMaxLength(45)
+            .IsRequired()
+            .HasColumnName("title");
+        
+        builder.Property(s =&gt; s.Description)
+            .HasColumnType("text")
+            .HasColumnName("description");
+        
+        builder.Property(s =&gt; s.CreationDate)
+            .IsRequired()
+            .HasColumnName("creation_date");
+        
+        builder.Property(s =&gt; s.CloseDate)
+            .HasColumnName("close_date");
+        
+        builder.Property(s =&gt; s.IsChangable)
+            .IsRequired()
+            .HasColumnType("tinyint(1)")
+            .HasColumnName("is_changable");
+        
+        builder.Property(s =&gt; s.IsActive)
+            .IsRequired()
+            .HasColumnType("tinyint(1)")
+            .HasColumnName("is_active");
+        
+        builder.Property(s =&gt; s.OwnerId)
+            .HasColumnName("owner_id");
+
+        builder.HasOne(s =&gt; s.Owner)
+            .WithMany(u =&gt; u.Surveys)
+            .HasForeignKey(s =&gt; s.OwnerId);
+    }
+}
+</code></pre>
+<h4 id="Інтерфейс-ihasid"><a class="header" href="#Інтерфейс-ihasid">Інтерфейс IHasId</a></h4>
+<h5 id="Реалізує-властивість-id-в-класах"><a class="header" href="#Реалізує-властивість-id-в-класах">Реалізує властивість Id в класах.</a></h5>
+<pre><code class="language-C#">public interface IHasId
+{
+    int Id { get; }
+}
+</code></pre>
+<h4 id="models"><a class="header" href="#models">Models</a></h4>
+<h5 id="Класи-які-вже-можуть-мати-логіку-та-використовуватимуться-в-самій-програмі-Кожна-сутність-має-модель-з-id-та-без-нього-для-випадків-коли-в-сутності-ще-немає-id-та-коли-вже-є"><a class="header" href="#Класи-які-вже-можуть-мати-логіку-та-використовуватимуться-в-самій-програмі-Кожна-сутність-має-модель-з-id-та-без-нього-для-випадків-коли-в-сутності-ще-немає-id-та-коли-вже-є">Класи, які вже можуть мати логіку та використовуватимуться в самій програмі. Кожна сутність має модель з id та без нього для випадків, коли в сутності ще немає Id та коли вже є.</a></h5>
+<h5 id="user"><a class="header" href="#user">User</a></h5>
+<pre><code class="language-C#">public class User
+{
+    public User(string firstName, string lastName, string email, string phoneNumber, string password, bool isAdmin, string description,
+        int? age, string gender, string company)
+    {
+        FirstName = firstName;
+        LastName = lastName;
+        Email = email;
+        PhoneNumber = phoneNumber;
+        Password = password;
+        IsAdmin = isAdmin;
+        Description = description;
+        Age = age;
+        Gender = gender;
+        Company = company;
+    }
+    public string FirstName { get; }
+    public string LastName { get; }
+    public string Email { get; }
+    public string? PhoneNumber { get; }
+    public string Password { get; }
+    public bool IsAdmin { get; }
+    public string? Description { get; }
+    public int? Age { get; }
+    public string? Gender{ get; }
+    public string? Company { get; }
+}
+</code></pre>
+<h5 id="identifieduser"><a class="header" href="#identifieduser">IdentifiedUser</a></h5>
+<pre><code class="language-C#">public class IdentifiedUser : User, IHasId
+{
+    public IdentifiedUser(int id, string firstName, string lastName, string email, string? phoneNumber, string password, bool isAdmin, string? description, int? age, string? gender, string? company) 
+        : base(firstName, lastName, email, phoneNumber, password, isAdmin, description, age, gender, company)
+    {
+        Id = id;
+    }
+
+    public IdentifiedUser(UserEntity u) : this(u.Id, u.FirstName, u.LastName, u.Email, u.PhoneNumber, u.Password, u.IsAdmin,u.Description, u.Age, u.Gender ,u.Company)
+    {
+    }
+
+    public int Id { get; }
+}
+</code></pre>
+<h5 id="category"><a class="header" href="#category">Category</a></h5>
+<pre><code class="language-C#">public class Category
+{
+    public Category(string name, int? parentId)
+    {
+        Name = name;
+        ParentId = parentId;
+    }
+    public string Name { get; }
+    public int? ParentId { get; }
+}
+</code></pre>
+<h5 id="identifiedcategory"><a class="header" href="#identifiedcategory">IdentifiedCategory</a></h5>
+<pre><code class="language-C#">public class IdentifiedCategory : Category, IHasId
+{
+    public IdentifiedCategory(int id, string name, int? parentId = null) : base(name, parentId)
+    {
+        Id = id;
+    }
+
+    public IdentifiedCategory(CategoryEntity c) : this(c.Id, c.Name, c.ParentId)
+    {
+    }
+
+    public int Id { get; }
+}
+</code></pre>
+<h5 id="expertise"><a class="header" href="#expertise">Expertise</a></h5>
+<pre><code class="language-C#">public class Expertise
+{
+    public Expertise(double expertiseRate, int categoryId, int userId)
+    {
+        ExpertiseRate = expertiseRate;
+        CategoryId = categoryId;
+        UserId = userId;
+    }
+    
+    public double ExpertiseRate { get; }
+    public int CategoryId { get; }
+    public int UserId { get; }
+}
+</code></pre>
+<h5 id="identifiedexpertise"><a class="header" href="#identifiedexpertise">IdentifiedExpertise</a></h5>
+<pre><code class="language-C#">public class IdentifiedExpertise : Expertise, IHasId
+{
+    public IdentifiedExpertise(int id, double expertiseRate, int categoryId, int userId) 
+        : base(expertiseRate, categoryId, userId)
+    {
+        Id = id;
+    }
+
+    public IdentifiedExpertise(ExpertiseEntity e) : this(e.Id, e.ExpertiseRate, e.CategoryId, e.UserId) 
+    {
+    }
+    public int Id { get; }
+}
+</code></pre>
+<h5 id="survey"><a class="header" href="#survey">Survey</a></h5>
+<pre><code class="language-C#">public class Survey
+{
+    public Survey(string title, string? description, DateTime creationDate, DateTime? closeDate, bool isChangable, bool isActive, int ownerId)
+    {
+        Title = title;
+        Description = description;
+        CreationDate = creationDate;
+        CloseDate = closeDate;
+        IsChangable = isChangable;
+        IsActive = isActive;
+        OwnerId = ownerId;
+    }
+    public string Title { get; }
+    public string? Description { get; }
+    public DateTime CreationDate { get; }
+    public DateTime? CloseDate { get; }
+    public bool IsChangable { get; }
+    public bool IsActive { get; }
+    public int OwnerId { get; }
+}
+</code></pre>
+<h5 id="identifiedsurvey"><a class="header" href="#identifiedsurvey">IdentifiedSurvey</a></h5>
+<pre><code class="language-C#">public class IdentifiedSurvey : Survey, IHasId
+{
+    public IdentifiedSurvey(int id, string title, string? description, DateTime creationDate, DateTime? closeDate, bool isChangable, bool isActive, int ownerId) 
+        : base(title, description, creationDate, closeDate, isChangable, isActive, ownerId)
+    {
+        Id = id;
+    }
+
+    public IdentifiedSurvey(SurveyEntity s) 
+        : this(s.Id, s.Title, s.Description, s.CreationDate, s.CloseDate, s.IsChangable, s.IsActive, s.OwnerId)
+    {
+    }
+
+    public int Id { get; }
+}
+</code></pre>
+<h4 id="surveydbcontext"><a class="header" href="#surveydbcontext">SurveyDbContext</a></h4>
+<h5 id="Основний-клас-який-предствляє-сесію-взаємодії-з-базою-даних"><a class="header" href="#Основний-клас-який-предствляє-сесію-взаємодії-з-базою-даних">Основний клас, який предствляє сесію взаємодії з базою даних.</a></h5>
+<pre><code class="language-C#">public class SurveyDbContext : DbContext
+{
+    public SurveyDbContext(DbContextOptions&lt;SurveyDbContext&gt; options) : base(options)
+    {
+    }
+    public DbSet&lt;UserEntity&gt; Users { get; set; }
+    public DbSet&lt;CategoryEntity&gt; Categories { get; set; }
+    public DbSet&lt;ExpertiseEntity&gt; Expertises { get; set; }
+    public DbSet&lt;SurveyEntity&gt; Surveys { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfiguration(new CategoryConfiguration());
+        modelBuilder.ApplyConfiguration(new UserConfiguration());
+        modelBuilder.ApplyConfiguration(new ExpertiseConfiguration());
+        modelBuilder.ApplyConfiguration(new SurveyConfiguration());
+        
+        base.OnModelCreating(modelBuilder);
+    }
+}
+</code></pre>
+<h4 id="repositories"><a class="header" href="#repositories">Repositories</a></h4>
+<h5 id="Взаємодіють-з-сутностями-які-записуються-або-витягаються-в-базу-даних"><a class="header" href="#Взаємодіють-з-сутностями-які-записуються-або-витягаються-в-базу-даних">Взаємодіють з сутностями, які записуються або витягаються в базу даних.</a></h5>
+<h5 id="userrepository"><a class="header" href="#userrepository">UserRepository</a></h5>
+<pre><code class="language-C#">using Microsoft.EntityFrameworkCore;
+using RESTful_API_lab.Entities;
+using RESTful_API_lab.Models;
+using RESTful_API_lab.ProjDbContext;
+
+namespace RESTful_API_lab.Repositories;
+
+public class UserRepository
+{
+    private SurveyDbContext _dbContext;
+
+    public UserRepository(SurveyDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public async Task&lt;List&lt;IdentifiedUser&gt;&gt; GetAll()
+    {
+       return await _dbContext.Users
+           .Select(u =&gt; new IdentifiedUser(u))
+           .ToListAsync();
+    }
+
+    public async Task&lt;IdentifiedUser&gt; Get(int id)
+    {
+        var user = await _dbContext.Users
+            .FindAsync(id);
+        
+        if(user is null)
+            throw new Exception($"User with id {id} not found");
+        
+        return new IdentifiedUser(user);
+    }
+
+    public async Task&lt;IdentifiedUser&gt; Create(User user)
+    {
+        if( await _dbContext.Users.AnyAsync(u =&gt; u.Email == user.Email))
+            throw new Exception($"Email {user.Email} already taken");
+        
+        var phone = user.PhoneNumber;
+        
+        if (!string.IsNullOrWhiteSpace(phone))
+        {
+            if(await _dbContext.Users.AnyAsync(u =&gt; u.PhoneNumber == phone))
+                throw new Exception($"PhoneNumber {user.PhoneNumber} already taken");
+        }
+        
+        var userEntity = new UserEntity()
+        {
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            Password = user.Password,
+            IsAdmin = user.IsAdmin,
+            Description = user.Description,
+            Age = user.Age
+        };
+        
+        await _dbContext.Users.AddAsync(userEntity);
+        await _dbContext.SaveChangesAsync();
+        
+        var created = new IdentifiedUser(userEntity);
+        
+        return created;
+    }
+
+    public async Task UpdatePhoneNumber(int id, string phoneNumber)
+    {
+        if(await _dbContext.Users.AnyAsync(u =&gt; u.PhoneNumber == phoneNumber))
+            throw new Exception($"PhoneNumber {phoneNumber} already taken");
+        
+        var user = await _dbContext.Users.FindAsync(id);
+        
+        if(user is null)
+            throw new Exception($"User with id {id} not found");
+        
+        user.PhoneNumber = phoneNumber;
+    }
+
+    public async Task UpdatePassword(int id, string password)
+    {
+        await _dbContext.Users
+            .Where(u =&gt; u.Id == id)
+            .ExecuteUpdateAsync(s =&gt; s
+                .SetProperty(u =&gt; u.Password, password));
+    }
+
+    public async Task Delete(int id)
+    {
+        await _dbContext.Users
+            .Where(u =&gt; u.Id == id)
+            .ExecuteDeleteAsync();
+    }
+}
+</code></pre>
+<h5 id="categoryrepository"><a class="header" href="#categoryrepository">CategoryRepository</a></h5>
+<pre><code class="language-C#">using Microsoft.EntityFrameworkCore;
+using RESTful_API_lab.Entities;
+using RESTful_API_lab.Models;
+using RESTful_API_lab.ProjDbContext;
+
+namespace RESTful_API_lab.Repositories;
+
+public class CategoryRepository
+{
+    private SurveyDbContext _dbContext;
+    
+    public CategoryRepository(SurveyDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public async Task&lt;List&lt;IdentifiedCategory&gt;&gt; GetAll()
+    {
+        var categories = await _dbContext.Categories
+            .Select(c =&gt; new IdentifiedCategory(c))
+            .ToListAsync();
+        
+        return categories;
+    }
+
+    public async Task&lt;IdentifiedCategory&gt; Get(int id)
+    {
+        var category = await _dbContext.Categories.FindAsync(id);
+        
+        if (category is null)
+            throw new NullReferenceException($"Category with id {id} could not be found");
+        
+        return new IdentifiedCategory(category);
+    }
+
+    public async Task&lt;IdentifiedCategory&gt; Add(Category category)
+    {
+        if(await _dbContext.Categories.AnyAsync(c =&gt; c.Name == category.Name))
+            throw new Exception($"Category with name {category.Name} already exists");
+        
+        var categoryEntity = new CategoryEntity()
+        {
+            Name = category.Name,
+            ParentId = category.ParentId
+        };
+        
+        await _dbContext.Categories.AddAsync(categoryEntity);
+        await _dbContext.SaveChangesAsync();
+        
+        return new IdentifiedCategory(categoryEntity);
+    }
+
+    public async Task UpdateName(int id, string name)
+    {
+        if(await _dbContext.Categories.AnyAsync(c =&gt; c.Name == name))
+            throw new Exception($"Category with name {name} already exists");
+        
+        await _dbContext.Categories.Where(c =&gt; c.Id == id)
+            .ExecuteUpdateAsync(s =&gt; s
+                .SetProperty(c =&gt; c.Name, name));
+    }
+
+    public async Task Delete(int id)
+    {
+        await _dbContext.Categories
+            .Where(c =&gt; c.Id == id)
+            .ExecuteDeleteAsync();
+    }
+    
+}
+</code></pre>
+<h5 id="expertiserepository"><a class="header" href="#expertiserepository">ExpertiseRepository</a></h5>
+<pre><code class="language-C#">using Microsoft.EntityFrameworkCore;
+using RESTful_API_lab.Entities;
+using RESTful_API_lab.Models;
+using RESTful_API_lab.ProjDbContext;
+
+namespace RESTful_API_lab.Repositories;
+
+public class ExpertiseRepository
+{
+    private SurveyDbContext _dbContext;
+
+    public ExpertiseRepository(SurveyDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public async Task&lt;List&lt;IdentifiedExpertise&gt;&gt; GetAllByUser(int userId)
+    {
+        return await _dbContext.Expertises
+            .Where(e =&gt; e.UserId == userId)
+            .Select(e =&gt; new IdentifiedExpertise(e))
+            .ToListAsync();
+    }
+
+    public async Task&lt;IdentifiedExpertise&gt; Get(int id)
+    {
+        var expertise = await _dbContext.Expertises.FindAsync(id);
+        
+        if(expertise == null)
+            throw new Exception($"Expertise with id {id} not found");
+        
+        return new IdentifiedExpertise(expertise);
+    }
+
+    public async Task&lt;IdentifiedExpertise&gt; Add(Expertise expertise)
+    {
+        bool isExist = await _dbContext.Expertises
+            .AnyAsync(e =&gt; 
+                e.UserId == expertise.UserId
+                &amp;&amp; e.CategoryId == expertise.CategoryId);
+        
+        if(isExist)
+            throw new Exception("Expertise already exists");
+            
+        var createdExpertise = new ExpertiseEntity()
+        {
+            ExpertiseRate = expertise.ExpertiseRate,
+            CategoryId = expertise.CategoryId,
+            UserId = expertise.UserId
+        };
+        
+        await _dbContext.Expertises.AddAsync(createdExpertise);
+        await _dbContext.SaveChangesAsync();
+        
+        return new IdentifiedExpertise(createdExpertise);
+    }
+
+    public async Task UpdateRate(int id, double rate)
+    {
+        await _dbContext.Expertises
+            .Where(e =&gt; e.Id == id)
+            .ExecuteUpdateAsync(s =&gt; s
+                .SetProperty(e =&gt; e.ExpertiseRate, rate));
+    }
+
+    public async Task Delete(int id)
+    {
+        await _dbContext.Expertises.
+            Where(e =&gt; e.Id == id)
+            .ExecuteDeleteAsync();
+    }
+}
+</code></pre>
+<h5 id="surveyrepository"><a class="header" href="#surveyrepository">SurveyRepository</a></h5>
+<pre><code class="language-C#">using Microsoft.EntityFrameworkCore;
+using RESTful_API_lab.Entities;
+using RESTful_API_lab.Models;
+using RESTful_API_lab.ProjDbContext;
+
+namespace RESTful_API_lab.Repositories;
+
+public class SurveyRepository
+{
+    private SurveyDbContext _dbContext;
+
+    public SurveyRepository(SurveyDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public async Task&lt;List&lt;IdentifiedSurvey&gt;&gt; GetAllByOwner(int ownerId)
+    {
+        return await _dbContext.Surveys
+            .Where(s =&gt; s.OwnerId == ownerId)
+            .Select(s =&gt; new IdentifiedSurvey(s))
+            .ToListAsync();
+    }
+
+    public async Task&lt;List&lt;IdentifiedSurvey&gt;&gt; GetAllWithTitlePart(string titlePart)
+    {
+        return await _dbContext.Surveys
+            .Where(s =&gt; s.Title.Contains(titlePart))
+            .Select(s =&gt; new IdentifiedSurvey(s))
+            .ToListAsync();
+    }
+
+    public async Task&lt;Survey&gt; GetById(int id)
+    {
+        var survey = await _dbContext.Surveys.FindAsync(id);
+        if (survey is null)
+            throw new Exception($"Survey with id {id} not found");
+        
+        return new IdentifiedSurvey(survey);
+    }
+
+    public async Task&lt;IdentifiedSurvey&gt; Add(Survey survey)
+    {
+        var createdSurvey = new SurveyEntity()
+        {
+            Title = survey.Title,
+            Description = survey.Description,
+            CreationDate = survey.CreationDate,
+            CloseDate = survey.CloseDate,
+            IsChangable = survey.IsChangable,
+            IsActive = survey.IsActive,
+            OwnerId = survey.OwnerId
+        };
+        
+        await _dbContext.Surveys.AddAsync(createdSurvey);
+        await _dbContext.SaveChangesAsync();
+        
+        return new IdentifiedSurvey(createdSurvey);
+    }
+
+    public async Task UpdateTitle(int id, string title)
+    {
+        await _dbContext.Surveys
+            .Where(s =&gt; s.Id == id)
+            .ExecuteUpdateAsync(sp =&gt; sp
+                .SetProperty(s =&gt; s.Title, title));
+    }
+
+    public async Task UpdateDescription(int id, string description)
+    {
+        await _dbContext.Surveys
+            .Where(s =&gt; s.Id == id)
+            .ExecuteUpdateAsync(sp =&gt; sp
+                .SetProperty(s =&gt; s.Description, description));
+    }
+
+    public async Task UpdateActivity(int id, bool isActive)
+    {
+        await _dbContext.Surveys
+            .Where(s =&gt; s.Id == id)
+            .ExecuteUpdateAsync(sp =&gt; sp
+                .SetProperty(s =&gt; s.IsActive, isActive));
+    }
+
+    public async Task Delete(int id)
+    {
+        await _dbContext.Surveys
+            .Where(s =&gt; s.Id == id)
+            .ExecuteDeleteAsync();
+    }
+}
+</code></pre>
+<h4 id="controllers"><a class="header" href="#controllers">Controllers</a></h4>
+<h5 id="Описують-поведінку-кінцевих-точок"><a class="header" href="#Описують-поведінку-кінцевих-точок">Описують поведінку кінцевих точок.</a></h5>
+<h5 id="usercontroller"><a class="header" href="#usercontroller">UserController</a></h5>
+<pre><code class="language-C#">using Microsoft.AspNetCore.Mvc;
+using RESTful_API_lab.Models;
+using RESTful_API_lab.Repositories;
+
+namespace RESTful_API_lab.Controllers;
+
+[ApiController]
+public class UserController : ControllerBase
+{
+    private UserRepository _userRepository;
+
+    public UserController(UserRepository userRepository)
+    {
+        _userRepository = userRepository;
+    }
+
+    [HttpGet]
+    [Route("users")]
+    public async Task&lt;ActionResult&lt;List&lt;IdentifiedUser&gt;&gt;&gt; GetUsers()
+    {
+        try
+        {
+            var users = await _userRepository.GetAll();
+            return Ok(users);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("users/{id}")]
+    public async Task&lt;ActionResult&lt;IdentifiedUser&gt;&gt; GetUser(int id)
+    {
+        try
+        {
+            var user = await _userRepository.Get(id);
+            return Ok(user);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost]
+    [Route("users")]
+    public async Task&lt;ActionResult&lt;IdentifiedUser&gt;&gt; CreateUser(User user)
+    {
+        try
+        {
+            var created = await _userRepository.Create(user);
+            return Created($"/users/{created.Id}", created);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPut]
+    [Route("users/{id}")]
+    public async Task&lt;ActionResult&gt; UpdatePhoneNumber(int id, string phoneNumber)
+    {
+        try
+        {
+            await _userRepository.UpdatePhoneNumber(id, phoneNumber);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPut]
+    [Route("users/update/{id}")]
+    public async Task&lt;ActionResult&gt; UpdatePassword(int id, string password)
+    {
+        try
+        {
+            await _userRepository.UpdatePassword(id, password);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpDelete]
+    [Route("users/{id}")]
+    public async Task&lt;ActionResult&gt; DeleteUser(int id)
+    {
+        try
+        {
+            await _userRepository.Delete(id);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+}
+</code></pre>
+<h5 id="categorycontroller"><a class="header" href="#categorycontroller">CategoryController</a></h5>
+<pre><code class="language-C#">using Microsoft.AspNetCore.Mvc;
+using RESTful_API_lab.Models;
+using RESTful_API_lab.Repositories;
+
+namespace RESTful_API_lab.Controllers;
+
+[ApiController]
+public class CategoryController : ControllerBase
+{
+    private CategoryRepository _categoryRepo;
+
+    public CategoryController(CategoryRepository categoryRepo)
+    {
+        _categoryRepo = categoryRepo;
+    }
+
+    [HttpGet]
+    [Route("categories")]
+    public async Task&lt;ActionResult&lt;List&lt;IdentifiedCategory&gt;&gt;&gt; GetCategories()
+    {
+        try
+        {
+            var categories = await _categoryRepo.GetAll();
+            return Ok(categories);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("categories/{id}")]
+    public async Task&lt;ActionResult&lt;IdentifiedCategory&gt;&gt; GetCategory(int id)
+    {
+        try
+        {
+            var category = await _categoryRepo.Get(id);
+            return Ok(category);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost]
+    [Route("categories")]
+    public async Task&lt;ActionResult&lt;List&lt;IdentifiedCategory&gt;&gt;&gt; CreateCategory([FromBody] Category category)
+    {
+        try
+        {
+            var created = await _categoryRepo.Add(category);
+            return Created($"/categories/{created.Id}", created);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPut]
+    [Route("categories/{id}")]
+    public async Task&lt;ActionResult&gt; UpdateCategoryName(int id, string name)
+    {
+        try
+        {
+            await _categoryRepo.UpdateName(id, name);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpDelete]
+    [Route("categories/{id}")]
+    public async Task&lt;ActionResult&gt; DeleteCategory(int id)
+    {
+        try
+        {
+            await _categoryRepo.Delete(id);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+}
+</code></pre>
+<h5 id="expertisecontroller"><a class="header" href="#expertisecontroller">ExpertiseController</a></h5>
+<pre><code class="language-C#">using Microsoft.AspNetCore.Mvc;
+using RESTful_API_lab.Models;
+using RESTful_API_lab.Repositories;
+
+namespace RESTful_API_lab.Controllers;
+
+[ApiController]
+public class ExpertiseController : ControllerBase
+{
+    private ExpertiseRepository _expertiseRepository;
+
+    public ExpertiseController(ExpertiseRepository expertiseRepository)
+    {
+        _expertiseRepository = expertiseRepository;
+    }
+
+    [HttpGet]
+    [Route("expertises/user/{userId}")]
+    public async Task&lt;ActionResult&lt;List&lt;IdentifiedExpertise&gt;&gt;&gt; GetExpertisesByUser(int userId)
+    {
+        try
+        {
+            var expertises = await _expertiseRepository.GetAllByUser(userId);
+            return Ok(expertises);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("expertises/{id}")]
+    public async Task&lt;ActionResult&lt;IdentifiedExpertise&gt;&gt; GetExpertiseById(int id)
+    {
+        try
+        {
+            var expertise = await _expertiseRepository.Get(id);
+            return Ok(expertise);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost]
+    [Route("expertises")]
+    public async Task&lt;ActionResult&lt;IdentifiedExpertise&gt;&gt; CreateExpertise(Expertise expertise)
+    {
+        try
+        {
+            var created = await _expertiseRepository.Add(expertise);
+            return Created($"/expertises/{created.Id}", created);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPut]
+    [Route("expertises/{id}")]
+    public async Task&lt;ActionResult&gt; UpdateExpertiseRate(int id, double rate)
+    {
+        try
+        {
+            await _expertiseRepository.UpdateRate(id, rate);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpDelete]
+    [Route("expertises/{id}")]
+    public async Task&lt;ActionResult&gt; DeleteExpertise(int id)
+    {
+        try
+        {
+            await _expertiseRepository.Delete(id);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+}
+</code></pre>
+<h5 id="surveycontroller"><a class="header" href="#surveycontroller">SurveyController</a></h5>
+<pre><code class="language-C#">using Microsoft.AspNetCore.Mvc;
+using RESTful_API_lab.Models;
+using RESTful_API_lab.Repositories;
+
+namespace RESTful_API_lab.Controllers;
+
+[ApiController]
+public class SurveyController : ControllerBase
+{
+    private SurveyRepository _surveyRepository;
+
+    public SurveyController(SurveyRepository surveyRepository)
+    {
+        _surveyRepository = surveyRepository;
+    }
+
+    [HttpGet]
+    [Route("surveys/owner/{ownerId}")]
+    public async Task&lt;ActionResult&lt;List&lt;IdentifiedSurvey&gt;&gt;&gt; GetSurveysByOwner(int ownerId)
+    {
+        try
+        {
+            var surveys = await _surveyRepository.GetAllByOwner(ownerId);
+            return Ok(surveys);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("surveys/{titlePart:alpha}")]
+    public async Task&lt;ActionResult&lt;List&lt;IdentifiedSurvey&gt;&gt;&gt; GetSurveysByTitlePart(string titlePart)
+    {
+        try
+        {
+            var surveys = await _surveyRepository.GetAllWithTitlePart(titlePart);
+            return Ok(surveys);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("surveys/{id:int}")]
+    public async Task&lt;ActionResult&lt;IdentifiedSurvey&gt;&gt; GetSurveyById(int id)
+    {
+        try
+        {
+            var survey = await _surveyRepository.GetById(id);
+            return Ok(survey);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost]
+    [Route("surveys")]
+    public async Task&lt;ActionResult&lt;IdentifiedSurvey&gt;&gt; CreateSurvey(Survey survey)
+    {
+        try
+        {
+            var created = await _surveyRepository.Add(survey);
+            return Created($"/surveys/{created.Id}", created);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPut]
+    [Route("surveys/update/title")]
+    public async Task&lt;ActionResult&gt; UpdateSurveyTitle(int id, string title)
+    {
+        try
+        {
+            await _surveyRepository.UpdateTitle(id, title);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPut]
+    [Route("surveys/update/description")]
+    public async Task&lt;ActionResult&gt; UpdateSurveyDescription(int id, string description)
+    {
+        try
+        {
+            await _surveyRepository.UpdateDescription(id, description);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPut]
+    [Route("surveys/update/activity")]
+    public async Task&lt;ActionResult&gt; UpdateSurveyActivity(int id, bool isActive)
+    {
+        try
+        {
+            await _surveyRepository.UpdateActivity(id, isActive);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpDelete]
+    [Route("surveys/delete/{id:int}")]
+    public async Task&lt;ActionResult&gt; DeleteSurvey(int id)
+    {
+        try
+        {
+            await _surveyRepository.Delete(id);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+}
+</code></pre>
+<h4 id="Головний-файл-programcs"><a class="header" href="#Головний-файл-programcs">Головний файл Program.cs</a></h4>
+<pre><code class="language-C#">using Microsoft.EntityFrameworkCore;
+using RESTful_API_lab.ProjDbContext;
+using RESTful_API_lab.Repositories;
+
+var builder = WebApplication.CreateBuilder(args);
+
+string connectionString = builder.Configuration.GetConnectionString("DbConnection");
+
+builder.Services.AddDbContext&lt;SurveyDbContext&gt;(options =&gt;
+{
+    options.UseMySQL(connectionString);
+});
+
+builder.Services.AddScoped&lt;SurveyRepository&gt;();
+builder.Services.AddScoped&lt;ExpertiseRepository&gt;();
+builder.Services.AddScoped&lt;CategoryRepository&gt;();
+builder.Services.AddScoped&lt;UserRepository&gt;();
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddProblemDetails();
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseStatusCodePages();
+
+app.UseHttpsRedirection();
+
+app.MapControllers();
+
+app.Run();
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h4 id="Створення-двох-користувачів-Перший-зі-всіма-даними-У-другого-користувача-деякі-необовязкові-поля-незаповнені"><a class="header" href="#Створення-двох-користувачів-Перший-зі-всіма-даними-У-другого-користувача-деякі-необовязкові-поля-незаповнені">Створення двох користувачів. Перший зі всіма даними. У другого користувача деякі необов'язкові поля незаповнені.</a></h4>
+<p><img src="https://github.com/user-attachments/assets/011a31fd-9049-41cc-8812-d13bf6d2a7c8" alt="Знімок екрана 2024-11-14 203125" />
+<img src="https://github.com/user-attachments/assets/a5921029-7f94-4b6a-a9b7-2208f908863b" alt="Знімок екрана 2024-11-14 203408" />
+<img src="https://github.com/user-attachments/assets/2b4b023b-4ea2-44c8-b74a-9f450f178cb8" alt="Знімок екрана 2024-11-14 203534" />
+<img src="https://github.com/user-attachments/assets/9d0496ce-dae1-44c3-af72-45593f6d89e1" alt="Знімок екрана 2024-11-14 203546" /></p>
+<h4 id="Отримання-усіх-користувачів"><a class="header" href="#Отримання-усіх-користувачів">Отримання усіх користувачів</a></h4>
+<p><img src="https://github.com/user-attachments/assets/01de9c16-807d-410f-bf52-b5a906cfc15b" alt="Знімок екрана 2024-11-14 203603" />
+<img src="https://github.com/user-attachments/assets/4e0f9517-c7ac-4058-816e-c1d85d0e0287" alt="Знімок екрана 2024-11-14 203623" /></p>
+<h4 id="Отримання-користувача-за-неіснуючим-id"><a class="header" href="#Отримання-користувача-за-неіснуючим-id">Отримання користувача за неіснуючим id</a></h4>
+<p><img src="https://github.com/user-attachments/assets/d1bfdf1e-0a69-40bf-b96b-7c5c2862fc6e" alt="Знімок екрана 2024-11-14 203653" />
+<img src="https://github.com/user-attachments/assets/ef13c130-d7cf-4f21-85e5-1c10856291a0" alt="Знімок екрана 2024-11-14 203709" /></p>
+<h4 id="Отримання-існуючого-користувача"><a class="header" href="#Отримання-існуючого-користувача">Отримання існуючого користувача</a></h4>
+<p><img src="https://github.com/user-attachments/assets/4a44660a-bd18-4ce4-94a2-eef68f71685d" alt="Знімок екрана 2024-11-14 203827" />
+<img src="https://github.com/user-attachments/assets/57d1ce95-333f-46cd-96fc-eb5a08a2338e" alt="Знімок екрана 2024-11-14 203836" /></p>
+<h4 id="Додаємо-2-категорії"><a class="header" href="#Додаємо-2-категорії">Додаємо 2 категорії</a></h4>
+<p><img src="https://github.com/user-attachments/assets/5e012ab0-8295-46dd-a14f-123efbab52bf" alt="Знімок екрана 2024-11-14 205446" />
+<img src="https://github.com/user-attachments/assets/b6969c61-8754-4e3f-830a-85f4ebcdc791" alt="Знімок екрана 2024-11-14 205455" />
+<img src="https://github.com/user-attachments/assets/3ba998e1-2f34-41fb-a4de-89dc640e1126" alt="Знімок екрана 2024-11-14 205524" />
+<img src="https://github.com/user-attachments/assets/13fa3f02-84ef-4bc0-9027-c45ad4c44b6d" alt="Знімок екрана 2024-11-14 205534" /></p>
+<h4 id="Отримуємо-усі-категорії"><a class="header" href="#Отримуємо-усі-категорії">Отримуємо усі категорії</a></h4>
+<p><img src="https://github.com/user-attachments/assets/3d270665-b1b2-4098-a3de-72f193b6f7aa" alt="Знімок екрана 2024-11-14 205615" />
+<img src="https://github.com/user-attachments/assets/302d7e14-ce92-42a3-bb9a-8da1c2de940d" alt="Знімок екрана 2024-11-14 205625" /></p>
+<h4 id="Оновимо-імя-категорії-з-id--2-на-geometry"><a class="header" href="#Оновимо-імя-категорії-з-id--2-на-geometry">Оновимо ім'я категорії з id == 2 на "Geometry"</a></h4>
+<p><img src="https://github.com/user-attachments/assets/24f605cb-aace-47f4-8e6f-4a00a1cf0e71" alt="Знімок екрана 2024-11-14 210000" />
+<img src="https://github.com/user-attachments/assets/55cbc4ec-2d36-47fb-93a0-f0bbb9aac5fb" alt="Знімок екрана 2024-11-14 210029" /></p>
+<h4 id="Якщо-витягнути-користувача-з-id--2-то-назва-буде-вже-нова"><a class="header" href="#Якщо-витягнути-користувача-з-id--2-то-назва-буде-вже-нова">Якщо витягнути користувача з id == 2, то назва буде вже нова</a></h4>
+<p><img src="https://github.com/user-attachments/assets/62f8cd7d-7a29-43b3-a80b-c957df5168fe" alt="Знімок екрана 2024-11-14 210043" />
+<img src="https://github.com/user-attachments/assets/c02b16e8-14dd-4885-b196-29e5c1771cfe" alt="Знімок екрана 2024-11-14 210054" /></p>
+<h4 id="Видалимо-категорію-з-id--2-та-отримаємо-усі-категорію-Побачимо-що-видаленої-категорії-у-списку-не-буде"><a class="header" href="#Видалимо-категорію-з-id--2-та-отримаємо-усі-категорію-Побачимо-що-видаленої-категорії-у-списку-не-буде">Видалимо категорію з id == 2 та отримаємо усі категорію. Побачимо, що видаленої категорії у списку не буде</a></h4>
+<p><img src="https://github.com/user-attachments/assets/c350ed68-fbd3-46c6-a119-030a1cfb8d0e" alt="Знімок екрана 2024-11-14 210441" />
+<img src="https://github.com/user-attachments/assets/cd728f23-c687-4aa2-a192-88c9e6db6537" alt="Знімок екрана 2024-11-14 210450" />
+<img src="https://github.com/user-attachments/assets/df28c940-61bd-423e-a838-863f61bcec06" alt="Знімок екрана 2024-11-14 210502" />
+<img src="https://github.com/user-attachments/assets/fbab2058-8f70-4733-9c50-ab253eb10032" alt="Знімок екрана 2024-11-14 210511" /></p>
+<h4 id="Створимо-експертизу"><a class="header" href="#Створимо-експертизу">Створимо експертизу</a></h4>
+<p><img src="https://github.com/user-attachments/assets/aecf1343-dddd-4a01-88ca-cd4b52f7bb2f" alt="Знімок екрана 2024-11-14 210821" />
+<img src="https://github.com/user-attachments/assets/240ddbf8-88f0-4653-8375-bd2dc0126b95" alt="Знімок екрана 2024-11-14 210831" /></p>
+<h4 id="Спробуємо-створити-ще-одну-таку-експертизу-лише-змінимо-рейтинг-Отримуємо-помилку-оскільки-для-такого-користувача-та-категорії-вже-є-експертиза"><a class="header" href="#Спробуємо-створити-ще-одну-таку-експертизу-лише-змінимо-рейтинг-Отримуємо-помилку-оскільки-для-такого-користувача-та-категорії-вже-є-експертиза">Спробуємо створити ще одну таку експертизу, лише змінимо рейтинг. Отримуємо помилку, оскільки для такого користувача та категорії вже є експертиза.</a></h4>
+<p><img src="https://github.com/user-attachments/assets/1204d5ae-f131-4a48-bb89-be81064f93c7" alt="Знімок екрана 2024-11-14 210843" />
+<img src="https://github.com/user-attachments/assets/f93f293c-ae70-4ca5-bea1-7b4d92fe993a" alt="Знімок екрана 2024-11-14 210856" /></p>
+<h4 id="Додамо-2-опитування"><a class="header" href="#Додамо-2-опитування">Додамо 2 опитування</a></h4>
+<p><img src="https://github.com/user-attachments/assets/fdadc048-5138-4988-bc77-35a4122980b0" alt="Знімок екрана 2024-11-14 211209" />
+<img src="https://github.com/user-attachments/assets/40b73ef7-ab67-4276-a87c-e77eb8b22ebb" alt="Знімок екрана 2024-11-14 211234" />
+<img src="https://github.com/user-attachments/assets/600ca76b-4264-4557-bd0c-be01e6feed0a" alt="Знімок екрана 2024-11-14 211316" />
+<img src="https://github.com/user-attachments/assets/8823d547-4aa2-4703-b5db-58a6ccbd8bf4" alt="Знімок екрана 2024-11-14 211333" /></p>
+<h4 id="Отримаємо-усі-опитування-що-мають-в-назві-math"><a class="header" href="#Отримаємо-усі-опитування-що-мають-в-назві-math">Отримаємо усі опитування, що мають в назві "Math"</a></h4>
+<p><img src="https://github.com/user-attachments/assets/b21fe84b-df37-42ab-bdc0-928ec9f0d4a7" alt="Знімок екрана 2024-11-14 211606" />
+<img src="https://github.com/user-attachments/assets/95125fff-ee0d-4b9c-a902-6cf63ea02e26" alt="Знімок екрана 2024-11-14 211621" /></p>
+<h4 id="Створимо-нову-категорію-та-спробуємо-змінити-її-назву-на-назву-існуючої-категорії-Програма-видасть-помилку"><a class="header" href="#Створимо-нову-категорію-та-спробуємо-змінити-її-назву-на-назву-існуючої-категорії-Програма-видасть-помилку">Створимо нову категорію та спробуємо змінити її назву на назву існуючої категорії. Програма видасть помилку</a></h4>
+<p><img src="https://github.com/user-attachments/assets/d1efa34a-cad4-47d2-8cc1-2b8bb5d9867c" alt="Знімок екрана 2024-11-14 211909" />
+<img src="https://github.com/user-attachments/assets/3f688129-0d47-4030-9442-d62f605923b1" alt="Знімок екрана 2024-11-14 211918" />
+<img src="https://github.com/user-attachments/assets/36110573-2144-470e-80ec-266b4a4bb7b5" alt="Знімок екрана 2024-11-14 211933" />
+<img src="https://github.com/user-attachments/assets/e5630394-850a-4f31-9b16-bcefa0779847" alt="Знімок екрана 2024-11-14 211942" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="Висновки-1"><a class="header" href="#Висновки-1">Висновки</a></h1>
-<p>У висновках наводять оцінку отриманих результатів, можливі галузі його використання. Висновки повинні містити в собі коротку узагальнену оцінку результатів розробки, у
-тому числі і з погляду на їх технічно-економічну ефективність. Необхідно порівняти
-отримані результати усіх характеристик об’єкта проєктування із завданням і з основними показниками сучасних аналогічних об’єктів.</p>
-<p>Необхідно вказати яке нове технічне рішення покладене в основу проєкту і у чому її
-переваги, що нового було запропоновано самим студентом.</p>
-<p>На базі отриманих висновків можуть надаватися рекомендації по використанню розробки. Вони повинні
-мати конкретний характер і бути цілком підтверджені проєктом.</p>
+<h4 id="В-ході-виконання-лабораторних-робіт-було-розроблено-систему-mess-modern-easy-social-survey-для-створення-опитувань-та-легкого-збору-необхідної-статистики"><a class="header" href="#В-ході-виконання-лабораторних-робіт-було-розроблено-систему-mess-modern-easy-social-survey-для-створення-опитувань-та-легкого-збору-необхідної-статистики">В ході виконання лабораторних робіт було розроблено систему MESS (Modern Easy Social Survey) для створення опитувань та легкого збору необхідної статистики.</a></h4>
+<h4 id="Роботу-над-проєктом-було-розділено-на-декілька-частин-що-дало-змогу-поступово-розібратися-дійти-до-випуску-повноцінного-якісного-продукту-Для-початку-було-проаналізовано-предметну-область-внаслідок-чого-стало-можливим-виявити-недоліки-аналогів-та-зрозуміти-в-якому-напрямку-необхідно-рухатися-для-знаходження-прихильників-нашого-застосунку-Створення-діаграм-прецедентів-та-діаграм-активностей-дозволило-описати-процес-роботи-системи-та-позитивно-вплинути-на-хід-розробки-Було-розроблено-бізнес-модлеь-er-модель-та-реляційну-схему-внаслідок-чого-стало-можливим-правильно-встановити-звязки-між-сутностями-Внаслідок-чого-було-перейдено-до-технічної-реалізації-а-саме-написання-скрипту-для-створення-бази-даних-та-сутностей-в-ній-а-також-реалізації-restfull-сервісу"><a class="header" href="#Роботу-над-проєктом-було-розділено-на-декілька-частин-що-дало-змогу-поступово-розібратися-дійти-до-випуску-повноцінного-якісного-продукту-Для-початку-було-проаналізовано-предметну-область-внаслідок-чого-стало-можливим-виявити-недоліки-аналогів-та-зрозуміти-в-якому-напрямку-необхідно-рухатися-для-знаходження-прихильників-нашого-застосунку-Створення-діаграм-прецедентів-та-діаграм-активностей-дозволило-описати-процес-роботи-системи-та-позитивно-вплинути-на-хід-розробки-Було-розроблено-бізнес-модлеь-er-модель-та-реляційну-схему-внаслідок-чого-стало-можливим-правильно-встановити-звязки-між-сутностями-Внаслідок-чого-було-перейдено-до-технічної-реалізації-а-саме-написання-скрипту-для-створення-бази-даних-та-сутностей-в-ній-а-також-реалізації-restfull-сервісу">Роботу над проєктом було розділено на декілька частин, що дало змогу поступово розібратися дійти до випуску повноцінного якісного продукту. Для початку було проаналізовано предметну область, внаслідок чого стало можливим виявити недоліки аналогів та зрозуміти, в якому напрямку необхідно рухатися для знаходження прихильників нашого застосунку. Створення діаграм прецедентів та діаграм активностей дозволило описати процес роботи системи та позитивно вплинути на хід розробки. Було розроблено бізнес-модлеь, ER-модель та реляційну схему, внаслідок чого стало можливим правильно встановити зв'язки між сутностями. Внаслідок чого було перейдено до технічної реалізації, а саме написання скрипту для створення бази даних та сутностей в ній, а також реалізації RESTfull сервісу.</a></h4>
+<h4 id="Внаслідок-виконання-даної-роботи-ми-навчилися-створювати-проєкт-від-стадії-концепції-до-випуску-Ми-змогли-покращити-свої-технічні-вміння-та-навчитися-користуватися-базами-даних-Одним-з-найважливіших-аспектів-є-здобутий-досвід-роботи-в-команді-над-одним-проєктом-що-дозволяє-частково-наблизитися-до-реальних-умов-роботи-покращити-навички-комунікації-та-вміння-розділяти-зони-відповідальності-при-спільній-організації"><a class="header" href="#Внаслідок-виконання-даної-роботи-ми-навчилися-створювати-проєкт-від-стадії-концепції-до-випуску-Ми-змогли-покращити-свої-технічні-вміння-та-навчитися-користуватися-базами-даних-Одним-з-найважливіших-аспектів-є-здобутий-досвід-роботи-в-команді-над-одним-проєктом-що-дозволяє-частково-наблизитися-до-реальних-умов-роботи-покращити-навички-комунікації-та-вміння-розділяти-зони-відповідальності-при-спільній-організації">Внаслідок виконання даної роботи, ми навчилися створювати проєкт від стадії концепції до випуску. Ми змогли покращити свої технічні вміння та навчитися користуватися базами даних. Одним з найважливіших аспектів є здобутий досвід роботи в команді над одним проєктом, що дозволяє частково наблизитися до реальних умов роботи, покращити навички комунікації та вміння розділяти зони відповідальності при спільній організації.</a></h4>
 
                     </main>
 
