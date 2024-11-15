@@ -1,0 +1,14 @@
+[book]
+language = "uk"
+multilingual = false
+src = "docs"
+
+# Замініть авторство проєкта на своє
+authors = ["Halai Dmytro", "Maksym Zinets", "Ivanchyshyn Andrii", "Prylutska Kateryna", "Solomka Andrii", "Tkachenko Zenoviia"]
+
+# Змініть назву проєкта на свою
+title = "Modern Easy Social Survey"
+
+[preprocessor.plantuml]
+plantuml-cmd = "http://www.plantuml.com/plantuml"
+use-data-uris = true
